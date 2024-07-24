@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { pool } from "../core/utils/db";
 import {
   ILoginReq,
@@ -6,6 +7,7 @@ import {
   IRegisterReq,
   IRegisterRes,
 } from "../core/interfaces";
+import { config } from "../config";
 
 class AuthService {
   constructor() {}
@@ -42,14 +44,13 @@ class AuthService {
         return null;
       }
 
-      return {
-        id,
-        email,
-        firstname,
-        lastname,
-      };
+      const token = jwt.sign({ userId: id, email }, config.jwt.secret, {
+        expiresIn: config.jwt.expiresIn,
+      });
+
+      return { user: { id, email, firstname, lastname }, token: token };
     } catch (error) {
-      throw new Error(`Error creating person: ${error}`);
+      throw new Error(`Error loggin in user: ${error}`);
     }
   };
 }

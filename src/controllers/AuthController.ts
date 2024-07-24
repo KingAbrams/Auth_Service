@@ -59,8 +59,6 @@ class AuthController {
 
       const result: ILoginRes | null = await this.authService.loginUser(user);
 
-      logger.info(`[CONTROLLER ] ROWS : ${JSON.stringify(result)}`);
-
       if (!result) {
         res.status(401).json({ error: "Invalid email or password" });
         return;

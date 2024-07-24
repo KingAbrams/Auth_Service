@@ -9,4 +9,8 @@ export interface IConfig {
     database: string;
     port: number;
   };
+  jwt: {
+    secret: string;
+    expiresIn: string;
+  };
 }

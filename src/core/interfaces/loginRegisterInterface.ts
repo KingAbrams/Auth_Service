@@ -4,10 +4,13 @@ export interface ILoginReq {
 }
 
 export interface ILoginRes {
-  id: number;
-  email: string;
-  firstname: string;
-  lastname: string;
+  user: {
+    id: number;
+    email: string;
+    firstname: string;
+    lastname: string;
+  };
+  token: string;
 }
 
 export interface IRegisterReq {
