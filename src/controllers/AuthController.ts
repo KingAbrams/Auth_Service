@@ -7,6 +7,7 @@ import {
   IRegisterReq,
   IRegisterRes,
 } from "../core/interfaces";
+import { sendMessage } from "../../rabbitmq";
 
 class AuthController {
   private authService: AuthService;
@@ -63,6 +64,8 @@ class AuthController {
         res.status(401).json({ error: "Invalid email or password" });
         return;
       }
+
+      await sendMessage(`User ${result.user.email} logged in`);
 
       res.status(200).json(result);
 
