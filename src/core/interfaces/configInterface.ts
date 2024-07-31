@@ -10,7 +10,9 @@ export interface IConfig {
     port: number;
   };
   jwt: {
-    secret: string;
-    expiresIn: string;
+    accessSecret: string;
+    refreshSecret: string;
+    accessExpiresIn: string;
+    refreshExpiresIn: string;
   };
 }

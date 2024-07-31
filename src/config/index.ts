@@ -15,7 +15,9 @@ export const config: IConfig = {
     port: parseInt(process.env.APP_PORT || "4444", 10),
   },
   jwt: {
-    secret: process.env.JWT_SECRET || "",
-    expiresIn: "12h",
+    accessSecret: process.env.JWT_ACCES_TOKEN_SECRET || "",
+    refreshSecret: process.env.JWT_REFRESH_TOKEN_SECRET || "",
+    accessExpiresIn: "30s",
+    refreshExpiresIn: "7d",
   },
 };

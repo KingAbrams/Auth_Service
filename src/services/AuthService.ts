@@ -8,9 +8,33 @@ import {
   IRegisterRes,
 } from "../core/interfaces";
 import { config } from "../config";
+import { UserPayload } from "../controllers/AuthController";
 
 class AuthService {
   constructor() {}
+
+  private generateAccessToken = (id: string, email: string) => {
+    const accessToken = jwt.sign(
+      { userId: id, email },
+      config.jwt.accessSecret,
+      {
+        expiresIn: config.jwt.accessExpiresIn,
+      }
+    );
+    return accessToken;
+  };
+
+  private generateRefreshToken = (id: string, email: string) => {
+    const refreshToken = jwt.sign(
+      { userId: id, email },
+      config.jwt.refreshSecret,
+      {
+        expiresIn: config.jwt.refreshExpiresIn,
+      }
+    );
+    return refreshToken;
+  };
+
   registerUser = async (data: IRegisterReq): Promise<IRegisterRes> => {
     try {
       const hashedPassword = await bcrypt.hash(data.password as string, 10);
@@ -44,13 +68,40 @@ class AuthService {
         return null;
       }
 
-      const token = jwt.sign({ userId: id, email }, config.jwt.secret, {
-        expiresIn: config.jwt.expiresIn,
-      });
+      const accessToken = this.generateAccessToken(id, email);
+      const refreshToken = this.generateRefreshToken(id, email);
 
-      return { user: { id, email, firstname, lastname }, token: token };
+      return {
+        user: { id, email, firstname, lastname },
+        accessToken,
+        refreshToken,
+      };
     } catch (error) {
       throw new Error(`Error loggin in user: ${error}`);
+    }
+  };
+
+  refreshToken = async (dataDecoded: UserPayload) => {
+    try {
+      const result = await pool.query(
+        `SELECT * FROM users WHERE id = $1 AND email = $2`,
+        [dataDecoded.userId, dataDecoded.email]
+      );
+
+      if (result.rows.length === 0) {
+        return null;
+      }
+
+      const { id, email } = result.rows[0];
+
+      delete dataDecoded.iat;
+      delete dataDecoded.exp;
+
+      const accessToken = this.generateAccessToken(id, email);
+
+      return accessToken;
+    } catch (error) {
+      throw new Error(`Error refreshing token: ${error}`);
     }
   };
 }

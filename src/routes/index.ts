@@ -12,5 +12,6 @@ router.get("/", (_req: Request, res: Response) => {
 
 router.post("/auth/register", authController.register);
 router.post("/auth/login", authController.login);
+router.post("/auth/refreshToken", authController.refreshToken);
 
 export default router;

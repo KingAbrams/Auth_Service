@@ -10,7 +10,8 @@ export interface ILoginRes {
     firstname: string;
     lastname: string;
   };
-  token: string;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export interface IRegisterReq {
