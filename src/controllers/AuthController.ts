@@ -101,6 +101,8 @@ class AuthController {
         res
           .status(401)
           .json({ message: `[Refresh Token is Invalid]: ${error}` });
+
+        return;
       }
 
       const dataDecoded = data as UserPayload;
