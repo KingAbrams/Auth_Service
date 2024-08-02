@@ -10,3 +10,11 @@ CREATE TABLE IF NOT EXISTS users (
     firstname VARCHAR(255) NOT NULL,
     lastname VARCHAR(255) NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    token TEXT NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);

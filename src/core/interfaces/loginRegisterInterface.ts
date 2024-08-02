@@ -26,3 +26,10 @@ export interface IRegisterRes {
   firstname: string;
   lastname: string;
 }
+
+export interface IRefreshToken {
+  id: string;
+  user_id: string;
+  token: string;
+  expires_at: Date;
+}

@@ -9,6 +9,7 @@ import {
 } from "../core/interfaces";
 import { config } from "../config";
 import { UserPayload } from "../controllers/AuthController";
+import { IRefreshToken } from "../core/interfaces/loginRegisterInterface";
 
 class AuthService {
   constructor() {}
@@ -34,6 +35,37 @@ class AuthService {
     );
     return refreshToken;
   };
+
+  private saveRefreshToken = async (
+    userId: string,
+    token: string,
+    expiryDate: Date
+  ) => {
+    await pool.query(
+      `INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)`,
+      [userId, token, expiryDate]
+    );
+  };
+
+  private deleteRefreshToken = async (token: string) => {
+    await pool.query(`DELETE FROM refresh_tokens WHERE token = $1`, [token]);
+  };
+
+  private findRefreshToken = async (token: string) => {
+    const result = await pool.query(
+      `SELECT * FROM refresh_tokens WHERE token = $1`,
+      [token]
+    );
+    return result.rows[0];
+  };
+
+  private async findUserByIdAndEmail(userId: string, email: string) {
+    const result = await pool.query(
+      `SELECT * FROM users WHERE id = $1 AND email = $2`,
+      [userId, email]
+    );
+    return result.rows[0];
+  }
 
   registerUser = async (data: IRegisterReq): Promise<IRegisterRes> => {
     try {
@@ -70,6 +102,11 @@ class AuthService {
 
       const accessToken = this.generateAccessToken(id, email);
       const refreshToken = this.generateRefreshToken(id, email);
+      const sevenDay = 7 * 24 * 60 * 60 * 1000;
+
+      const expiryDate = new Date(Date.now() + sevenDay);
+
+      await this.saveRefreshToken(id, refreshToken, expiryDate);
 
       return {
         user: { id, email, firstname, lastname },
@@ -81,27 +118,47 @@ class AuthService {
     }
   };
 
-  refreshToken = async (dataDecoded: UserPayload) => {
+  verifyAndRefreshToken = async (
+    refreshToken: string
+  ): Promise<string | null> => {
     try {
-      const result = await pool.query(
-        `SELECT * FROM users WHERE id = $1 AND email = $2`,
-        [dataDecoded.userId, dataDecoded.email]
-      );
+      const storedToken = await this.findRefreshToken(refreshToken);
 
-      if (result.rows.length === 0) {
+      if (!storedToken) {
         return null;
       }
 
-      const { id, email } = result.rows[0];
+      const { expires_at } = storedToken as IRefreshToken;
+      const dateNow = new Date();
+      const dateExpiryStoredToken = new Date(expires_at);
 
-      delete dataDecoded.iat;
-      delete dataDecoded.exp;
+      if (dateExpiryStoredToken < dateNow) {
+        await this.deleteRefreshToken(refreshToken);
+        return null;
+      }
 
-      const accessToken = this.generateAccessToken(id, email);
+      const decodedData = jwt.verify(
+        refreshToken,
+        config.jwt.refreshSecret
+      ) as UserPayload;
+      const user = await this.findUserByIdAndEmail(
+        decodedData.userId,
+        decodedData.email
+      );
 
-      return accessToken;
+      if (!user) {
+        await this.deleteRefreshToken(refreshToken);
+        return null;
+      }
+
+      const accesToken = this.generateAccessToken(
+        decodedData.userId,
+        decodedData.email
+      );
+
+      return accesToken;
     } catch (error) {
-      throw new Error(`Error refreshing token: ${error}`);
+      throw new Error(`Error verifying and refreshing token: ${error}`);
     }
   };
 }

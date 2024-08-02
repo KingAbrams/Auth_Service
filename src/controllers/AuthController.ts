@@ -96,35 +96,27 @@ class AuthController {
 
     const refreshToken = authorization.split(" ")[1];
 
-    jwt.verify(refreshToken, config.jwt.refreshSecret, async (error, data) => {
-      if (error) {
-        res
-          .status(401)
-          .json({ message: `[Refresh Token is Invalid]: ${error}` });
+    try {
+      const accessToken = await this.authService.verifyAndRefreshToken(
+        refreshToken
+      );
 
+      if (!accessToken) {
+        res.status(401).json({
+          message: "[Refresh Token is Invalid] or [User doesn't exist]",
+        });
         return;
       }
 
-      const dataDecoded = data as UserPayload;
+      res.status(200).json({
+        message: `Token refreshed successfully`,
+        accessToken,
+      });
+    } catch (error) {
+      res.status(500).json({ message: `[Internal error]: ${error}` });
 
-      try {
-        const result = await this.authService.refreshToken(dataDecoded);
-
-        if (!result) {
-          res.status(401).json({ error: "User doesn't exist" });
-          return;
-        }
-
-        res.status(200).json({
-          message: `Token refreshed successfully`,
-          accessToken: result,
-        });
-      } catch (error) {
-        res.status(500).json({ message: `[Internal error]: ${error}` });
-
-        logger.error(`[CONTROLLER] Refresh token 'failed': ${error}`);
-      }
-    });
+      logger.error(`[CONTROLLER] Refresh token 'failed': ${error}`);
+    }
   };
 }
 
