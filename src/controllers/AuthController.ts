@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import jwt from "jsonwebtoken";
 import { logger } from "../config/logger";
 import AuthService from "../services/AuthService";
 import {
@@ -9,10 +8,10 @@ import {
   IRegisterRes,
 } from "../core/interfaces";
 import { sendMessage } from "../../rabbitmq";
-import { config } from "../config";
+import AuthTokenService from "../services/AuthTokenService";
 
 export interface UserPayload {
-  userId: string;
+  userId: number;
   email: string;
   iat?: number;
   exp?: number;
@@ -20,9 +19,11 @@ export interface UserPayload {
 
 class AuthController {
   private authService: AuthService;
+  private authTokenService: AuthTokenService;
 
   constructor(authService: AuthService) {
     this.authService = authService;
+    this.authTokenService = new AuthTokenService();
   }
 
   register = async (req: Request, res: Response): Promise<void> => {
@@ -97,7 +98,7 @@ class AuthController {
     const refreshToken = authorization.split(" ")[1];
 
     try {
-      const accessToken = await this.authService.verifyAndRefreshToken(
+      const accessToken = await this.authTokenService.verifyAndRefreshToken(
         refreshToken
       );
 
