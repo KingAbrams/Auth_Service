@@ -1,5 +1,4 @@
 import bcrypt from "bcrypt";
-import { pool } from "../core/utils/db";
 import {
   ILoginReq,
   ILoginRes,
