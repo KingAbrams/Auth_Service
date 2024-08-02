@@ -9,6 +9,7 @@ import AuthRepository from "../repositories/AuthRepositories";
 import AuthTokenService from "./AuthTokenService";
 import AuthTokenRepository from "../repositories/AuthTokenRepository";
 import { IUser } from "../core/interfaces/loginRegisterInterface";
+import { ONE_WEEK } from "../core/constants";
 
 class AuthService {
   private authRepository: AuthRepository;
@@ -53,9 +54,8 @@ class AuthService {
         id,
         email
       );
-      const sevenDay = 7 * 24 * 60 * 60 * 1000;
 
-      const expiryDate = new Date(Date.now() + sevenDay);
+      const expiryDate = new Date(Date.now() + ONE_WEEK);
 
       await this.authTokenRepository.saveRefreshToken(
         id,

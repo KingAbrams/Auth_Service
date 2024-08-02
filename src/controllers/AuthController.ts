@@ -9,6 +9,7 @@ import {
 } from "../core/interfaces";
 import { sendMessage } from "../../rabbitmq";
 import AuthTokenService from "../services/AuthTokenService";
+import { ONE_WEEK } from "../core/constants";
 
 export interface UserPayload {
   userId: number;
@@ -77,6 +78,12 @@ class AuthController {
 
       await sendMessage(`User ${result.user.email} logged in`);
 
+      res.cookie("refreshToken", result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: ONE_WEEK,
+      });
+
       res.status(200).json(result);
 
       logger.info("[CONTROLLER] Login user 'success'");
@@ -88,14 +95,12 @@ class AuthController {
   };
 
   refreshToken = async (req: Request, res: Response): Promise<void> => {
-    const authorization = req.headers.authorization;
+    const { refreshToken } = req.cookies;
 
-    if (!authorization) {
+    if (!refreshToken) {
       res.status(401).json({ error: "Refresh Token is not provided" });
       return;
     }
-
-    const refreshToken = authorization.split(" ")[1];
 
     try {
       const accessToken = await this.authTokenService.verifyAndRefreshToken(
