@@ -15,6 +15,7 @@ class AuthService {
   private authRepository: AuthRepository;
   private authTokenRepository: AuthTokenRepository;
   private authTokenService: AuthTokenService;
+
   constructor() {
     this.authRepository = new AuthRepository();
     this.authTokenService = new AuthTokenService();
