@@ -1,12 +1,13 @@
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://household-management-theta.vercel.app/",
+  "https://household-management-theta.vercel.app",
 ];
 
 const originHandler = (
   origin: string | undefined,
   callback: (error: Error | null, allowed?: boolean) => void
 ) => {
+  console.log("Requested Origin:", origin);
   if (!origin || allowedOrigins.includes(origin)) {
     callback(null, true);
   } else {
