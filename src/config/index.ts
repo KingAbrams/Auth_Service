@@ -17,7 +17,7 @@ export const config: IConfig = {
   jwt: {
     accessSecret: process.env.JWT_ACCES_TOKEN_SECRET || "",
     refreshSecret: process.env.JWT_REFRESH_TOKEN_SECRET || "",
-    accessExpiresIn: "30s",
+    accessExpiresIn: "1h",
     refreshExpiresIn: "7d",
   },
 };
