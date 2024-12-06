@@ -6,7 +6,8 @@
     "build": "tsc",
     "start:prod": "node dist/server.js",
     "start:dev": "nodemon server.ts",
-    "migrate": "ts-node src/core/utils/migrateDb.ts",
+    "migrate:dev": "ts-node src/core/utils/migrateDb.ts",
+    "migrate:prod": "node dist/core/utils/migrateDb.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
